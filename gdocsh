@@ -27,15 +27,16 @@ function p_info {
 
 function print_usage {
     cat <<EOF
-Usage: ${0} [-h|-c <choice>|-n <document name>]
+Usage: ${0} [-h|-c <choice>|-t "<document name>"]
     -h      Print this helpful text.
-    -c      Choice from indexed document list (int)
+    -c      Numeric choice from indexed document list (-l).
+    -d      Delete remote document.
     -g      Get (download) remote document - overrides default edit mode.
     -l      List remote documents and exit.
-    -n      Document name, new or existing. If both -c and -n are specified, -n takes precedence.
+    -t      Document title, new or existing. If both -c and -t are specified, -t takes precedence.
 
 Example: ${0}
-         ${0} -n todo
+         ${0} -t todo
          ${0} -c 3
 EOF
 }
@@ -54,14 +55,15 @@ if [ -t 1 ]; then
 fi
 
 mode="edit"
-while getopts c:ghln: o
+while getopts c:dghlt: o
 do
     case $o in
         h) print_usage ; exit 0 ;;
         c) doc=$OPTARG ; list=false ;;
+        d) mode="delete" ;;
         g) mode="get" ;;
         l) list=true ;;
-        n) newdoc=$OPTARG ; list=false ;;
+        t) title=$OPTARG ; list=false ;;
     esac
 done
 shift $(($OPTIND-1))
@@ -81,37 +83,31 @@ unset IFS
     done
 [ "${list:-}" == true ] && exit 0
 
-if [ "${newdoc:-}" == "" ]; then
+if [ "${title:-}" == "" ]; then
     # make a valid choice - the eval is nasty but bash range builtin takes literals only 8)
     while :; do
         if [ "${doc:-}" == "" ]; then
             read -p "${b:-}${green:-}Choose document to ${mode} (n for new):${t_reset:-} " doc
             if [[ "${doc}" == "n" ]]; then
                 doc=""
-                [ "${mode:-}" == "get" ] && { p_err "you need to specify an existing document to get"; continue; }
-                read -p "${b:-}${yellow:-}Specify name of (new/existing) document:${t_reset:-} " newdoc; 
-                [ ! ${newdoc} == "" ] && break;
+                [ ! "${mode:-}" == "edit" ] && { p_err "you can't create a new document in ${mode} mode!"; continue; }
+                read -p "${b:-}${yellow:-}Specify name of (new/existing) document:${t_reset:-} " title; 
+                [ ! ${title} == "" ] && break
             fi
         fi
         p="\<$doc\>";
-        [[ $(eval echo {0..$((${#docarray[@]}-1))}) =~ $p ]] && break
+        [[ $(eval echo {0..$((${#docarray[@]}-1))}) =~ $p ]] && { title="${docarray[${doc}]}" ; break; }
         p_err "not a valid choice: ${doc}"
         doc=""
     done
-fi
-
-if [ ! "${newdoc:-}" == "" ]; then
-    title="${newdoc}" 
-else
-    title="${docarray[${doc}]}"
 fi
 
 case ${mode} in
     "edit")
         # we're here! defaulting to a sane editor
         google docs edit --title ${title:-new document} --editor ${EDITOR:-vim} ;;
-    "get")
-        google docs get --title ${title} ;;
+    "get"|"delete")
+        google docs ${mode} --title ${title} ;;
     *)
         p_err "unrecognized mode $mode ???" ;;
 esac
