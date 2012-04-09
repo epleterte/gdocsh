@@ -54,7 +54,10 @@ if [ -t 1 ]; then
     exec 2>&3; exec 3>&-
 fi
 
+## defaults
 mode="edit"
+
+## parse command line arguments
 while getopts c:dghlt: o
 do
     case $o in
