@@ -22,18 +22,19 @@ function p_info {
     # print info
     # params: <string>
     local string="${@}"
-    printf "${b:-}${yellow:-}> %s${t_reset:-}\n" "${string}"
+    printf "${b:-}${purple:-}> %s${t_reset:-}\n" "${string}"
 }
 
 function print_usage {
     cat <<EOF
-Usage: ${0} [-h|-c <choice>|-d|-g|-t "<document name>"]
+Usage: ${0} [-h|-c <choice>|-d|-g|-q|-t "<document name>"]
     -h      Print this helpful text.
     -c      Numeric choice from indexed document list (-l).
     -d      Delete remote document.
     -g      Get (download) remote document - overrides default edit mode.
     -l      List remote documents and exit.
     -t      Document title, new or existing. If both -c and -t are specified, -t takes precedence.
+    -q      Quiet, i.e. don't be verbose.
 
 Example: ${0}
          ${0} -t todo
@@ -56,9 +57,11 @@ fi
 
 ## defaults
 mode="edit"
+quiet=false
+verbose=false
 
 ## parse command line arguments
-while getopts c:dghlt: o
+while getopts c:dghlt:vq o
 do
     case $o in
         h) print_usage ; exit 0 ;;
@@ -67,6 +70,8 @@ do
         g) mode="get" ;;
         l) list=true ;;
         t) title=$OPTARG ; list=false ;;
+        v) verbose=true ;;
+        q) quiet=true ;;
     esac
 done
 shift $(($OPTIND-1))
@@ -79,6 +84,7 @@ which google >/dev/null || { p_err "'google' binary not in PATH!"; exit 1; }
 IFS="
 "
 docarray=($(google docs list | awk -F',' '{ print $1 }'))
+[ "${quiet}" == true ] || echo "${blue:-}G ${red:-}o ${yellow:-}o ${blue:-}g ${green}l ${red:-}e${t_reset:-}  d o c s"
 unset IFS
 [ "${list:-}" == false ] || \
     for ((i = 0; i <= ${#docarray[@]}-1; i++)); do
@@ -108,6 +114,7 @@ fi
 case ${mode} in
     "edit")
         # we're here! defaulting to a sane editor
+        [ "${verbose}" == true ] && p_info "opening remote document ${title:-new document} with editor ${EDITOR:-vim}"
         google docs edit --title ${title:-new document} --editor ${EDITOR:-vim} ;;
     "get"|"delete")
         google docs ${mode} --title ${title} ;;
