@@ -84,7 +84,7 @@ which google >/dev/null || { p_err "'google' binary not in PATH!"; exit 1; }
 IFS="
 "
 docarray=($(google docs list | awk -F',' '{ print $1 }'))
-[ "${quiet}" == true ] || echo "${blue:-}G ${red:-}o ${yellow:-}o ${blue:-}g ${green}l ${red:-}e${t_reset:-}  d o c s"
+[ "${quiet}" == true ] || echo "${b:-}${blue:-}G ${red:-}o ${yellow:-}o ${blue:-}g ${green}l ${red:-}e${t_reset:-}  ${b:-}d o c s${t_reset:-}"
 unset IFS
 [ "${list:-}" == false ] || \
     for ((i = 0; i <= ${#docarray[@]}-1; i++)); do
