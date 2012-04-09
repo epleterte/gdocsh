@@ -27,7 +27,7 @@ function p_info {
 
 function print_usage {
     cat <<EOF
-Usage: ${0} [-h|-c <choice>|-t "<document name>"]
+Usage: ${0} [-h|-c <choice>|-d|-g|-t "<document name>"]
     -h      Print this helpful text.
     -c      Numeric choice from indexed document list (-l).
     -d      Delete remote document.
