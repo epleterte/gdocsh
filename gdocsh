@@ -27,14 +27,15 @@ function p_info {
 
 function print_usage {
     cat <<EOF
-Usage: ${0} [-h|-c <choice>|-d|-g|-q|-t "<document name>"]
+Usage: ${0} [-h|-c <choice>|-d|-g|-q|-v|-t "<document name>"]
     -h      Print this helpful text.
     -c      Numeric choice from indexed document list (-l).
-    -d      Delete remote document.
-    -g      Get (download) remote document - overrides default edit mode.
+    -d      Delete remote document - "delete" mode (default $mode).
+    -g      Get (download) remote document - "get" mode (default $mode).
     -l      List remote documents and exit.
     -t      Document title, new or existing. If both -c and -t are specified, -t takes precedence.
-    -q      Quiet, i.e. don't be verbose.
+    -v      Verbose mode - print some extra info.
+    -q      Quiet, i.e. don't be verbose (no header).
 
 Example: ${0}
          ${0} -t todo
