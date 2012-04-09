@@ -72,9 +72,10 @@ IFS="
 "
 docarray=($(google docs list | awk -F',' '{ print $1 }'))
 unset IFS
-[ "${list:-}" == false ] || for ((i = 0; i <= ${#docarray[@]}-1; i++)); do
-    echo $i: ${docarray[$i]}
-done
+[ "${list:-}" == false ] || \
+    for ((i = 0; i <= ${#docarray[@]}-1; i++)); do
+        echo $i: ${docarray[$i]}
+    done
 [ "${list:-}" == true ] && exit 0
 
 if [ "${newdoc:-}" == "" ]; then
