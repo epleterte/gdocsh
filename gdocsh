@@ -96,7 +96,7 @@ if [ "${title:-}" == "" ]; then
     # make a valid choice - the eval is nasty but bash range builtin takes literals only 8)
     while :; do
         if [ "${doc:-}" == "" ]; then
-            read -p "${b:-}${green:-}Choose document to ${mode} (n for new):${t_reset:-} " doc
+            read -p "${b:-}${blue:-}Choose document to ${mode} (n for new):${t_reset:-} " doc
             if [[ "${doc}" == "n" ]]; then
                 doc=""
                 [ ! "${mode:-}" == "edit" ] && { p_err "you can't create a new document in ${mode} mode!"; continue; }
