@@ -25,6 +25,20 @@ function p_info {
     printf "${b:-}${yellow:-}> %s${t_reset:-}\n" "${string}"
 }
 
+function print_usage {
+    cat <<EOF
+Usage: ${0} [-h|-c <choice>|-n <document name>]
+    -h      Print this helpful text.
+    -c      Choice from indexed document list (int)
+    -l      List remote documents and exit.
+    -n      Document name, new or existing. If both -c and -n are specified, -n takes precedence.
+
+Example: ${0}
+         ${0} -n todo
+         ${0} -c 3
+EOF
+}
+
 ## setup fancy terminal colors
 if [ -t 1 ]; then
     exec 3>&2 2>/dev/null
@@ -32,9 +46,22 @@ if [ -t 1 ]; then
     red=$( tput setf 4 ) || true
     green=$( tput setf 2 ) || true
     yellow=$( tput setf 6 ) || true
+    blue=$( tput setaf 4 ) || true
+    purple=$( tput setaf 5 ) || true
     t_reset=$( tput sgr0 ) || true
     exec 2>&3; exec 3>&-
 fi
+
+while getopts c:hln: o
+do
+    case $o in
+        h) print_usage ; exit 0 ;;
+        c) doc=$OPTARG ; list=false ;;
+        l) list=true ;;
+        n) newdoc=$OPTARG ; list=false ;;
+    esac
+done
+shift $(($OPTIND-1))
 
 ## sanity check
 which google >/dev/null || { p_err "'google' binary not in PATH!"; exit 1; }
@@ -45,25 +72,30 @@ IFS="
 "
 docarray=($(google docs list | awk -F',' '{ print $1 }'))
 unset IFS
-for ((i = 0; i <= ${#docarray[@]}-1; i++)); do
+[ "${list:-}" == false ] || for ((i = 0; i <= ${#docarray[@]}-1; i++)); do
     echo $i: ${docarray[$i]}
 done
+[ "${list:-}" == true ] && exit 0
 
-newdoc=""
-# make a valid choice - the eval is nasty but bash range builtin takes literals only 8)
-while true; do
-    read -p "${b:-}${green:-}Choose document to edit (n for new):${t_reset:-} " doc
-    if [[ "${doc}" == "n" ]]; then
+if [ "${newdoc:-}" == "" ]; then
+    # make a valid choice - the eval is nasty but bash range builtin takes literals only 8)
+    while :; do
+        if [ "${doc:-}" == "" ]; then
+            read -p "${b:-}${green:-}Choose document to edit (n for new):${t_reset:-} " doc
+            if [[ "${doc}" == "n" ]]; then
+                doc=""
+                read -p "${b:-}${yellow:-}Specify name of (new/existing) document:${t_reset:-} " newdoc; 
+                [ ! ${newdoc} == "" ] && break;
+            fi
+        fi
+        p="\<$doc\>";
+        [[ $(eval echo {0..$((${#docarray[@]}-1))}) =~ $p ]] && break
+        p_err "not a valid choice: ${doc}"
         doc=""
-        read -p "${b:-}${yellow:-}Specify name of (new) document:${t_reset:-} " newdoc; 
-        [ ! ${newdoc} == "" ] && break;
-    fi
-    p="\<$doc\>";
-    [[ $(eval echo {0..$((${#docarray[@]}-1))}) =~ $p ]] && break
-    p_err "not a valid choice: ${doc}"
-done
+    done
+fi
 
-if [ ! "${newdoc}" == "" ]; then
+if [ ! "${newdoc:-}" == "" ]; then
     title="${newdoc}" 
 else
     title="${docarray[${doc}]}"
