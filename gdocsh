@@ -94,7 +94,7 @@ unset IFS
 [ "${list:-}" == true ] && exit 0
 
 if [ "${title:-}" == "" ]; then
-    # make a valid choice - the eval is nasty but bash range builtin takes literals only 8)
+    # make a valid choice
     while :; do
         if [ "${doc:-}" == "" ]; then
             read -p "${b:-}${blue:-}Choose document to ${mode} (n for new):${t_reset:-} " doc
@@ -106,6 +106,7 @@ if [ "${title:-}" == "" ]; then
             fi
         fi
         p="\<$doc\>";
+        # the eval is nasty but bash range builtin takes literals only 8)
         [[ $(eval echo {0..$((${#docarray[@]}-1))}) =~ $p ]] && { title="${docarray[${doc}]}" ; break; }
         p_err "not a valid choice: ${doc}"
         doc=""
@@ -118,6 +119,8 @@ case ${mode} in
         [ "${verbose}" == true ] && p_info "opening remote document ${title:-new document} with editor ${EDITOR:-vim}"
         google docs edit --title ${title:-new document} --editor ${EDITOR:-vim} ;;
     "get"|"delete")
+        m=${mode/%t/tt};
+        [ "${verbose}" == true ] && p_info "${m%e}ing document ${title}"
         google docs ${mode} --title ${title} ;;
     *)
         p_err "unrecognized mode $mode ???" ;;
