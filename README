@@ -6,3 +6,5 @@
  \__, |\__,_|\___/ \___|___/_| |_|
  |___/
 
+ dependencies: python-gdata (versions over 2.0.14 are apparently not supported http://code.google.com/p/googlecl/wiki/Install )
+
